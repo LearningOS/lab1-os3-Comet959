@@ -18,13 +18,13 @@ pub fn main() -> usize {
     // 注意本次 task info 调用也计入
     assert_eq!(0, task_info(&info));
     let t3 = get_time() as usize;
-    assert!(3 <= info.syscall_times[SYSCALL_GETTIMEOFDAY]);
-    assert_eq!(1, info.syscall_times[SYSCALL_TASK_INFO]);
-    assert_eq!(0, info.syscall_times[SYSCALL_WRITE]);
-    assert!(0 < info.syscall_times[SYSCALL_YIELD]);
-    assert_eq!(0, info.syscall_times[SYSCALL_EXIT]);
-    assert!(t2 - t1 <= info.time + 1);
-    assert!(info.time < t3 - t1 + 100);
+    assert!(3 <= info.syscall_times[SYSCALL_GETTIMEOFDAY]); // 169 get_time执行次数大于2
+    assert_eq!(1, info.syscall_times[SYSCALL_TASK_INFO]); // task_info调用只执行一次
+    assert_eq!(0, info.syscall_times[SYSCALL_WRITE]); // write调用不执行
+    assert!(0 < info.syscall_times[SYSCALL_YIELD]); // yield调用执行至少一次
+    assert_eq!(0, info.syscall_times[SYSCALL_EXIT]); // exit调用不执行
+    assert!(t2 - t1 <= info.time + 1); // t2-t1是 sleep(500)的执行时间 info.time
+    assert!(info.time < t3 - t1 + 100); 
     assert!(info.status == TaskStatus::Running);
 
     // 想想为什么 write 调用是两次
