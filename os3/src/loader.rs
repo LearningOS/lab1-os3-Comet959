@@ -51,14 +51,14 @@ pub fn get_num_app() -> usize {
     unsafe { (_num_app as usize as *const usize).read_volatile() }
 }
 
-pub fn load_apps() {
+pub fn load_apps() { // 负责将所有用户程序在内核初始化的时一并加载进内存。
     extern "C" {
         fn _num_app();
     }
     let num_app_ptr = _num_app as usize as *const usize;
     let num_app = get_num_app();
     let app_start = unsafe { core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1) };
-    // clear i-cache first
+    // clear i-cache first 清楚指令缓存
     unsafe {
         core::arch::asm!("fence.i");
     }
