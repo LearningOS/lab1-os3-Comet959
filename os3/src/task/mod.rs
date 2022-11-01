@@ -20,6 +20,7 @@ use crate::sync::UPSafeCell;
 use lazy_static::*;
 pub use switch::__switch;
 pub use task::{TaskControlBlock, TaskStatus};
+use crate::timer::{get_time_us, get_time, get_time2};
 
 pub use context::TaskContext;
 // use alloc::boxed::Box;
@@ -54,9 +55,8 @@ lazy_static! {
         let mut tasks = [TaskControlBlock {
             task_cx: TaskContext::zero_init(),
             task_status: TaskStatus::UnInit,
-            // task_syscall_times: [0; 5],
-            // task_syscall_times: &[0;500],
-            // task_syscall_times: Box::new([0;500]),
+            task_time: 0,
+            task_start_time: get_time2(),
         }; MAX_APP_NUM];
         for (i, t) in tasks.iter_mut().enumerate().take(num_app) {
             t.task_cx = TaskContext::goto_restore(init_app_cx(i));
@@ -82,6 +82,7 @@ impl TaskManager {
     fn run_first_task(&self) -> ! {
         let mut inner = self.inner.exclusive_access();
         let task0 = &mut inner.tasks[0];
+        task0.task_start_time = get_time2();
         task0.task_status = TaskStatus::Running;
         let next_task_cx_ptr = &task0.task_cx as *const TaskContext;
         drop(inner);
@@ -105,6 +106,7 @@ impl TaskManager {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
         inner.tasks[current].task_status = TaskStatus::Exited;
+        // self.get_current_task_time();
     }
 
     /// Find next task to run and return task id.
@@ -124,6 +126,10 @@ impl TaskManager {
         if let Some(next) = self.find_next_task() {
             let mut inner = self.inner.exclusive_access();
             let current = inner.current_task;
+            // self.get_current_task_time();
+            if inner.tasks[next].task_status == TaskStatus::UnInit {
+                inner.tasks[next].task_start_time = get_time2();
+            }
             inner.tasks[next].task_status = TaskStatus::Running;
             inner.current_task = next;
             let current_task_cx_ptr = &mut inner.tasks[current].task_cx as *mut TaskContext; // 恢复状态
@@ -147,7 +153,9 @@ impl TaskManager {
         let current = inner.current_task;
         return inner.tasks[current].task_status;
     }
-
+    fn get_current_task_start_time(&self) -> isize {
+            return self.get_current_task_control_block().task_start_time;
+        }
     fn get_current_task_control_block(&self) -> TaskControlBlock {
         let inner = self.inner.exclusive_access();
         return inner.tasks[inner.current_task];
@@ -156,6 +164,16 @@ impl TaskManager {
     fn get_current_task_nr(&self) -> usize {
         return self.inner.exclusive_access().current_task;
     }
+
+    fn get_current_task_time(&self) -> isize {
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].task_time = get_time2() - inner.tasks[current].task_start_time;
+        drop(inner);
+        return self.get_current_task_control_block().task_time;
+    }
+    
+
 }
 
 /// Run the first task in task list.
@@ -204,4 +222,12 @@ pub fn get_current_task_control_block() -> TaskControlBlock {
 
 pub fn get_current_task_nr() -> usize {
     return TASK_MANAGER.get_current_task_nr();
+}
+
+pub fn get_current_task_start_time() -> isize {
+    return TASK_MANAGER.get_current_task_start_time();
+}
+
+pub fn get_current_task_time() -> isize {
+    return TASK_MANAGER.get_current_task_time();
 }

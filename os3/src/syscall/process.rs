@@ -4,7 +4,7 @@ use crate::config::{MAX_SYSCALL_NUM};
 use crate::task::{exit_current_and_run_next, suspend_current_and_run_next, TaskStatus, get_current_task_status};
 use crate::timer::{get_time_us, get_time};
 use crate::syscall::{SYSCALL_WRITE, SYSCALL_EXIT, SYSCALL_YIELD, SYSCALL_GET_TIME, SYSCALL_TASK_INFO};
-use crate::task::{TaskControlBlock,get_current_task_nr};
+use crate::task::{TaskControlBlock,get_current_task_nr, get_current_task_time};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -52,30 +52,25 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize {
     0
 }
 
+
+
 /// YOUR JOB: Finish sys_task_info to pass testcases
 pub fn sys_task_info(ti: *mut TaskInfo) -> isize {
-    let mut time: usize = get_time();
-    // println!("{:?}", crate::syscall::syscall_times);
-    // let syscall_times: [u32; MAX_SYSCALL_NUM] = [0;500];
-    let status: TaskStatus = get_current_task_status();
-    println!("status:{}", status);
-    unsafe {
-        println!("syscall_times:{:?}", syscall_times);
-        println!("SYSCALL_WRITE:{}", syscall_times[SYSCALL_WRITE]); // 64
-        // syscall_times[SYSCALL_WRITE] = 0;
-        // syscall_times[SYSCALL_EXIT] = 0;
-        println!("SYSCALL_EXIT:{}", syscall_times[SYSCALL_EXIT]); // 93
-        println!("SYSCALL_YIELD:{}", syscall_times[SYSCALL_YIELD]); // 124
-        println!("SYSCALL_GET_TIME:{}", syscall_times[SYSCALL_GET_TIME]); // 169
-        println!("SYSCALL_TASK_INFO:{}", syscall_times[SYSCALL_TASK_INFO]); // 410
-    }
-    println!("time:{}", time);
-    time = 501;
+    // unsafe {
+    //     // println!("syscall_times:{:?}", syscall_times);
+    //     println!("SYSCALL_WRITE:{}", syscall_times[SYSCALL_WRITE]); // 64
+    //     println!("SYSCALL_EXIT:{}", syscall_times[SYSCALL_EXIT]); // 93
+    //     println!("SYSCALL_YIELD:{}", syscall_times[SYSCALL_YIELD]); // 124
+    //     println!("SYSCALL_GET_TIME:{}", syscall_times[SYSCALL_GET_TIME]); // 169
+    //     println!("SYSCALL_TASK_INFO:{}", syscall_times[SYSCALL_TASK_INFO]); // 410
+    // }
+    // let time: usize = get_current_task_time() / 10000;
+
     unsafe {
         *ti = TaskInfo {
-            status,
-            syscall_times,
-            time,
+            status: get_current_task_status(),
+            syscall_times: syscall_times,
+            time: get_current_task_time() as usize,
         };
     }
     0
