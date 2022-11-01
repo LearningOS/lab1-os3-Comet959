@@ -28,9 +28,28 @@ use crate::task::{TaskControlBlock,get_current_task_nr};
 /// handle syscall exception with `syscall_id` and other arguments
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     // LAB1: You may need to update syscall info here.
-    let current_task = get_current_task_nr();
-    add_syscall_times(syscall_id, current_task);
+    
 
+    if syscall_id == SYSCALL_TASK_INFO {
+        
+        let current_task = get_current_task_nr();
+        add_syscall_times(syscall_id, current_task);
+        println!("Get a SYSCALL_TASK_INFO, TASKID:{}", current_task);
+    }
+
+    if syscall_id == SYSCALL_GET_TIME {
+        
+        let current_task = get_current_task_nr();
+        add_syscall_times(syscall_id, current_task);
+
+    }
+
+    if syscall_id == SYSCALL_YIELD {
+        
+        let current_task = get_current_task_nr();
+        add_syscall_times(syscall_id, current_task);
+
+    }
     match syscall_id {
         SYSCALL_WRITE => sys_write(args[0], args[1] as *const u8, args[2]),
         SYSCALL_EXIT => sys_exit(args[0] as i32),

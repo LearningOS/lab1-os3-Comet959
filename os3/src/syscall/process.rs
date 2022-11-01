@@ -62,8 +62,8 @@ pub fn sys_task_info(ti: *mut TaskInfo) -> isize {
     unsafe {
         println!("syscall_times:{:?}", syscall_times);
         println!("SYSCALL_WRITE:{}", syscall_times[SYSCALL_WRITE]); // 64
-        syscall_times[SYSCALL_WRITE] = 0;
-        syscall_times[SYSCALL_EXIT] = 0;
+        // syscall_times[SYSCALL_WRITE] = 0;
+        // syscall_times[SYSCALL_EXIT] = 0;
         println!("SYSCALL_EXIT:{}", syscall_times[SYSCALL_EXIT]); // 93
         println!("SYSCALL_YIELD:{}", syscall_times[SYSCALL_YIELD]); // 124
         println!("SYSCALL_GET_TIME:{}", syscall_times[SYSCALL_GET_TIME]); // 169
